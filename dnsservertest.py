@@ -3,8 +3,19 @@
 import dns.resolver
 import json
 import os.path
+import signal
+import sys
 import termcolor
 import time
+
+
+def exit_on_sigint(a, b):
+    print()
+    print(termcolor.colored("Interrupted", "red", attrs=["bold"]))
+    sys.exit(137)
+
+
+signal.signal(signal.SIGINT, exit_on_sigint)
 
 directory = os.path.dirname(__file__)
 
