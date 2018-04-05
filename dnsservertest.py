@@ -3,6 +3,7 @@
 import dns.resolver
 import json
 import os.path
+import termcolor
 import time
 
 directory = os.path.dirname(__file__)
@@ -33,6 +34,8 @@ def test_server(server, alternate=False):
                 # cancel on 50% timeouts
                 return None
             continue
+        except Exception as exception:
+            return None
         duration = time.time() - start
 
         minimum = min(duration, minimum)
@@ -44,11 +47,32 @@ def test_server(server, alternate=False):
     return (minimum, average, maximum, timeouts)
 
 
+def print_results(results):
+    if results != None:
+        print(termcolor.colored("min:"), end=" ")
+        print(termcolor.colored(round(results[0], 5), attrs=["bold"]), end="ms | ")
+        print(termcolor.colored("avg:"), end=" ")
+        print(termcolor.colored(round(results[1], 5), attrs=["bold", "underline"]), end="ms | ")
+        print(termcolor.colored("max:"), end=" ")
+        print(termcolor.colored(round(results[2], 5), attrs=["bold"]), end="ms ")
+        percentage_timeouts = round(results[3] / len(domains) * 100)
+        if percentage_timeouts == 0:
+            print(termcolor.colored("(" + str(percentage_timeouts) + "% timeouts)", "green", attrs=["dark"]))
+        elif percentage_timeouts < 10:
+            print(termcolor.colored("(" + str(percentage_timeouts) + "% timeouts)", "yellow", attrs=["dark"]))
+        else:
+            print(termcolor.colored("(" + str(percentage_timeouts) + "% timeouts)", "red", attrs=["dark"]))
+    else:
+        print(termcolor.colored("Too many timeouts or an exception occured", "red"))
+
+
 for server in servers:
-    print(server)
+    print(termcolor.colored(server["name"], "blue", attrs=["bold"]))
+    print(termcolor.colored("  " + server["preferred"], "cyan"), end="  ")
     results_pref = test_server(server)
-    print(results_pref)
+    print_results(results_pref)
     if "alternate" in server:
-        print(str(server) + " (alternate)")
+        print(termcolor.colored("  " + server["alternate"], "cyan"), end=" ")
+        print(termcolor.colored("(alt)", "cyan", attrs=["dark"]), end="  ")
         results_alt = test_server(server, True)
-        print(results_alt)
+        print_results(results_alt)
