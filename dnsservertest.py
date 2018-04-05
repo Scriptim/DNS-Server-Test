@@ -77,13 +77,40 @@ def print_results(results):
         print(termcolor.colored("Too many timeouts or an exception occured", "red"))
 
 
+def server_score(results):
+    if results != None:
+        minimum = results[0]
+        average = results[1]
+        maximum = results[2]
+        timeouts = results[3]
+
+        return 4 * (1 / average - timeouts) + 1 / minimum - 1 / maximum
+    else:
+        return -100
+
+
+server_results = []
+
 for server in servers:
     print(termcolor.colored(server["name"], "blue", attrs=["bold"]))
     print(termcolor.colored("  " + server["preferred"], "cyan"), end="  ")
     results_pref = test_server(server)
+    server_results.append((server["name"], server["preferred"], server_score(results_pref), False))
     print_results(results_pref)
     if "alternate" in server:
         print(termcolor.colored("  " + server["alternate"], "cyan"), end=" ")
         print(termcolor.colored("(alt)", "cyan", attrs=["dark"]), end="  ")
         results_alt = test_server(server, True)
+        server_results.append((server["name"], server["alternate"], server_score(results_alt), True))
         print_results(results_alt)
+
+server_results = sorted(server_results, key=lambda server: server[2], reverse=True)
+print()
+print(termcolor.colored("====[ RECOMMENDATIONS ]====", "blue", attrs=["bold"]))
+for i in range(5):
+    result = server_results[i]
+    print(termcolor.colored(i + 1, "blue", attrs=["bold"]), end=" ")
+    print(termcolor.colored(result[0], "blue"), end=" ")
+    if result[3]:
+        print(termcolor.colored("(alt)", "blue", attrs=["dark"]), end=" ")
+    print(termcolor.colored(result[1], "cyan"))
