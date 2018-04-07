@@ -1,12 +1,16 @@
 #!/bin/python3
 
+import colorama
 import dns.resolver
 import json
-import os.path
+import os
 import signal
 import sys
 import termcolor
 import time
+
+if os.name == "nt":
+    colorama.init()
 
 
 def exit_on_sigint(a, b):
